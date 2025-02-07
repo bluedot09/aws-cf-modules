@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS CloudFormation Template to create a VPC
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Description: The CIDR block for the VPC
+
+  EnableDnsSupport:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable DNS support in the VPC
+
+  EnableDnsHostnames:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable DNS hostnames in the VPC
+
+  InstanceTenancy:
+    Type: String
+    Default: "default"
+    AllowedValues: ["default", "dedicated", "host"]
+    Description: The instance tenancy attribute for the VPC
+
+  VpcTags:
+    Type: List
+    Description: The tags to apply to the VPC
+    Default: []
+
+  InternetGatewayTags:
+    Type: List
+    Description: The tags to apply to the Internet Gateway
+    Default: []
+
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: !Ref EnableDnsSupport
+      EnableDnsHostnames: !Ref EnableDnsHostnames
+      InstanceTenancy: !Ref InstanceTenancy
+      Tags: !Ref VpcTags
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags: !Ref InternetGatewayTags
+
+  AttachInternetGateway:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+Outputs:
+  VPCId:
+    Description: The VPC Id
+    Value: !Ref VPC
+
+  InternetGatewayId:
+    Description: The Internet Gateway Id
+    Value: !Ref InternetGateway
