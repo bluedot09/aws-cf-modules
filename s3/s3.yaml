@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation Template to create an S3 Bucket
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: The name of the S3 bucket to create
+
+  BucketTags:
+    Type: List<String>
+    Description: A list of tags to associate with the S3 bucket
+    Default: []
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref BucketName
+      Tags: !Ref BucketTags
+
+Outputs:
+  BucketName:
+    Description: The name of the S3 bucket
+    Value: !Ref S3Bucket
+
+  BucketArn:
+    Description: The ARN of the S3 bucket
+    Value: !GetAtt S3Bucket.Arn

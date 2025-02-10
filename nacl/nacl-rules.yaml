@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation Template to create NACL entries
+
+Parameters:
+  NetworkAclId:
+    Type: String
+    Description: The ID of the Network ACL
+
+  Rules:
+    Type: List<String>
+    Description: A list of rules to apply to the NACL
+
+Resources:
+  NaclEntries:
+    Type: 'AWS::CloudFormation::WaitConditionHandle'
+
+  NaclEntry:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref NetworkAclId
+      RuleNumber: !Select [ 0, !Ref Rules ]
+      Protocol: !Select [ 1, !Ref Rules ]
+      RuleAction: !Select [ 2, !Ref Rules ]
+      Egress: !Select [ 3, !Ref Rules ]
+      CidrBlock: !Select [ 4, !Ref Rules ]
+
+Outputs:
+  NaclEntryId:
+    Description: The Network ACL Entry Id
+    Value: !Ref NaclEntry

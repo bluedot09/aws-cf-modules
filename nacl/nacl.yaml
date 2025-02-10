@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation Template to create a Network ACL (NACL)
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: The ID of the VPC where the NACL will be created
+
+  NaclTags:
+    Type: List
+    Description: A list of tags to associate with the NACL
+    Default: []
+
+  InboundRules:
+    Type: List
+    Description: A list of inbound rules for the NACL
+    Default: []
+
+  OutboundRules:
+    Type: List
+    Description: A list of outbound rules for the NACL
+    Default: []
+
+Resources:
+  NACL:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref VpcId
+      Tags: !Ref NaclTags
+
+  InboundRulesStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: ./nacl-rules.yaml
+      Parameters:
+        NetworkAclId: !Ref NACL
+        Rules: !Ref InboundRules
+        Egress: 'false'
+
+  OutboundRulesStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: ./nacl-rules.yaml
+      Parameters:
+        NetworkAclId: !Ref NACL
+        Rules: !Ref OutboundRules
+        Egress: 'true'
+
+Outputs:
+  NACLId:
+    Description: The Network ACL Id
+    Value: !Ref NACL
