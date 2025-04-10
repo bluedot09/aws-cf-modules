@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: qualys-container-sensor
+  namespace: {{ .Values.qualys.namespace }}
+  labels:
+    app: qualys-container-sensor
+spec:
+  selector:
+    matchLabels:
+      app: qualys-container-sensor
+  template:
+    metadata:
+      labels:
+        app: qualys-container-sensor
+    spec:
+      hostPID: true
+      hostIPC: true
+      hostNetwork: true
+      containers:
+        - name: qualys-sensor
+          image: {{ .Values.qualys.image }}
+          securityContext:
+            privileged: true
+          env:
+            - name: ACTIVATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: qualys-activation
+                  key: ACTIVATION_ID
+            - name: CUSTOMER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: qualys-activation
+                  key: CUSTOMER_ID
+          volumeMounts:
+            - name: rootfs
+              mountPath: /hostroot
+              readOnly: true
+            - name: modules
+              mountPath: /lib/modules
+              readOnly: true
+            - name: run
+              mountPath: /run
+            - name: var-lib
+              mountPath: /var/lib
+            - name: etc
+              mountPath: /etc
+      volumes:
+        - name: rootfs
+          hostPath:
+            path: /
+        - name: modules
+          hostPath:
+            path: /lib/modules
+        - name: run
+          hostPath:
+            path: /run
+        - name: var-lib
+          hostPath:
+            path: /var/lib
+        - name: etc
+          hostPath:
+            path: /etc
+      restartPolicy: Always
