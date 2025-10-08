@@ -1,0 +1,46 @@
+{{- if and .Values.patch.enabled .Values.installCore }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: calico-patch-ds
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: calico-patcher
+      restartPolicy: Never
+      containers:
+        - name: kubectl
+          image: {{ .Values.patch.image }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              ns="{{ .Values.namespace }}"
+              ds="{{ .Values.patch.dsName }}"
+
+              {{- if .Values.patch.env.addIpv4poolCidr }}
+              kubectl -n "$ns" patch daemonset "$ds" --type='json' -p='[
+                {"op":"add","path":"/spec/template/spec/containers/0/env/-","value":{"name":"CALICO_IPV4POOL_CIDR","value":"{{ .Values.patch.env.ipv4poolCidr }}" }}
+              ]'
+              {{- end }}
+
+              {{- if .Values.patch.env.forceVxlanAlways }}
+              kubectl -n "$ns" patch daemonset "$ds" --type='json' -p='[
+                {"op":"test","path":"/spec/template/spec/containers/0/env/7/name","value":"CALICO_IPV4POOL_VXLAN"},
+                {"op":"replace","path":"/spec/template/spec/containers/0/env/7/value","value":"Always"}
+              ]' || true
+              {{- end }}
+
+              {{- if .Values.patch.env.felixAwsSrcDstCheck }}
+              kubectl -n "$ns" patch daemonset "$ds" --type='json' -p='[
+                {"op":"add","path":"/spec/template/spec/containers/0/env/-","value":{"name":"FELIX_AWSSRCDSTCHECK","value":"{{ .Values.patch.env.felixAwsSrcDstCheck }}" }}
+              ]'
+              {{- end }}
+{{- end }}

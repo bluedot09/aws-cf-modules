@@ -1,0 +1,39 @@
+namespace: kube-system
+installCore: true                # include upstream Calico manifest from files/
+
+# IPPool (was ippool-default-ipv4.yaml)
+ippool:
+  enabled: true
+  name: default-ipv4-ippool
+  cidr: "10.42.0.0/16"
+  blockSize: 26
+  natOutgoing: true
+  ipipMode: "Never"
+  vxlanMode: "Always"
+  nodeSelector: "all()"
+  allowedUses:
+    - Workload
+    - Tunnel
+
+# FelixConfiguration (was felixconfiguration-default.yaml)
+felix:
+  enabled: true
+  name: default
+  bpfConnectTimeLoadBalancing: "TCP"
+  bpfHostNetworkedNATWithoutCTLB: "Enabled"
+  bpfLogLevel: ""
+  floatingIPs: "Disabled"
+  logSeverityScreen: "Info"
+  reportingInterval: "0s"
+  awssrcdstcheck: "Disable"   # matches FELIX_AWSSRCDSTCHECK intent
+
+# DaemonSet env patch for calico-node (replaces kustomize JSON6902)
+patch:
+  enabled: true
+  image: "bitnami/kubectl:1.30"
+  dsName: "calico-node"
+  env:
+    addIpv4poolCidr: true
+    ipv4poolCidr: "10.42.0.0/16"
+    forceVxlanAlways: true
+    felixAwsSrcDstCheck: "Disable"

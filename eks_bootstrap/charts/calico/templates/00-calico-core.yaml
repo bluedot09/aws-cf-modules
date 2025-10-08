@@ -1,0 +1,3 @@
+{{- if .Values.installCore }}
+{{ .Files.Get "calico-v3.30.0-vxlan.yaml" }}
+{{- end }}

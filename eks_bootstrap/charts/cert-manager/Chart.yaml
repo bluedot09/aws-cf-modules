@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cert-manager
+description: cert-manager 1.17.0 from upstream manifest with webhook/hostNetwork/port & toleration patches
+type: application
+version: 0.1.0
+appVersion: "v1.17.0"

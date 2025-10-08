@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: certmgr-patch-webhook
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: certmgr-patcher
+      restartPolicy: Never
+      containers:
+        - name: kubectl
+          image: {{ .Values.kubectlImage }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              ns="{{ .Values.namespace }}"
+              dep="{{ .Values.webhook.deploymentName }}"
+              port="{{ .Values.webhook.securePort }}"
+
+              echo "Setting ${dep} --secure-port=${port}"
+              kubectl -n "$ns" patch deployment "$dep" --type='json' -p="[
+                {\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/args/1\",\"value\":\"--secure-port=${port}\"}
+              ]"
+
+              echo "Setting ${dep} containerPort=${port}"
+              kubectl -n "$ns" patch deployment "$dep" --type='json' -p="[
+                {\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/ports/0/containerPort\",\"value\": ${port}}
+              ]"
+
+              {{- if .Values.webhook.hostNetwork }}
+              echo "Enabling hostNetwork on ${dep}"
+              kubectl -n "$ns" patch deployment "$dep" --type='json' -p="[
+                {\"op\":\"replace\",\"path\":\"/spec/template/spec/hostNetwork\",\"value\": true}
+              ]"
+              {{- end }}

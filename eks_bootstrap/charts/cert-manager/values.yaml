@@ -1,0 +1,15 @@
+namespace: cert-manager
+installCore: true
+kubectlImage: "bitnami/kubectl:1.30"
+
+webhook:
+  deploymentName: "cert-manager-webhook"
+  securePort: 10251
+  hostNetwork: true
+
+tolerations:
+  addCriticalAddonsOnly: true
+  deployments:
+    - cert-manager
+    - cert-manager-cainjector
+    - cert-manager-webhook

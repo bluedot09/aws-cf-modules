@@ -1,0 +1,17 @@
+{{- if .Values.ippool.enabled }}
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: {{ .Values.ippool.name | quote }}
+spec:
+  allowedUses:
+{{- range .Values.ippool.allowedUses }}
+  - {{ . }}
+{{- end }}
+  blockSize: {{ .Values.ippool.blockSize }}
+  cidr: {{ .Values.ippool.cidr | quote }}
+  ipipMode: {{ .Values.ippool.ipipMode }}
+  natOutgoing: {{ ternary "true" "false" .Values.ippool.natOutgoing }}
+  nodeSelector: {{ .Values.ippool.nodeSelector | quote }}
+  vxlanMode: {{ .Values.ippool.vxlanMode }}
+{{- end }}

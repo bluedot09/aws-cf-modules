@@ -1,0 +1,32 @@
+{{- if and .Values.patch.enabled .Values.installCore }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: calico-patcher
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: calico-patcher
+rules:
+  - apiGroups: ["apps"]
+    resources: ["daemonsets"]
+    verbs: ["get","patch","update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: calico-patcher
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: calico-patcher
+subjects:
+  - kind: ServiceAccount
+    name: calico-patcher
+    namespace: {{ .Values.namespace }}
+{{- end }}

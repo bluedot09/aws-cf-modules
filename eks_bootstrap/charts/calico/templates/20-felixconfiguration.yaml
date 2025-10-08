@@ -1,0 +1,14 @@
+{{- if .Values.felix.enabled }}
+apiVersion: crd.projectcalico.org/v1
+kind: FelixConfiguration
+metadata:
+  name: {{ .Values.felix.name | quote }}
+spec:
+  bpfConnectTimeLoadBalancing: {{ .Values.felix.bpfConnectTimeLoadBalancing | quote }}
+  bpfHostNetworkedNATWithoutCTLB: {{ .Values.felix.bpfHostNetworkedNATWithoutCTLB | quote }}
+  bpfLogLevel: {{ .Values.felix.bpfLogLevel | quote }}
+  floatingIPs: {{ .Values.felix.floatingIPs | quote }}
+  logSeverityScreen: {{ .Values.felix.logSeverityScreen | quote }}
+  reportingInterval: {{ .Values.felix.reportingInterval | quote }}
+  awssrcdstcheck: {{ .Values.felix.awssrcdstcheck | quote }}
+{{- end }}

@@ -1,0 +1,3 @@
+{{- if .Values.installCore }}
+{{ .Files.Get "cert-manager-v1.17.0.yaml" }}
+{{- end }}

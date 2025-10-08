@@ -1,0 +1,34 @@
+{{- if .Values.tolerations.addCriticalAddonsOnly }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: certmgr-patch-tolerations
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "20"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: certmgr-patcher
+      restartPolicy: Never
+      containers:
+        - name: kubectl
+          image: {{ .Values.kubectlImage }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              ns="{{ .Values.namespace }}"
+              patch='[
+                {"op":"add","path":"/spec/template/spec/tolerations","value":[]},
+                {"op":"add","path":"/spec/template/spec/tolerations/-","value":{"key":"CriticalAddonsOnly","operator":"Exists"}}
+              ]'
+              {{- range $d := .Values.tolerations.deployments }}
+              echo "Patching toleration into {{$d}}"
+              kubectl -n "$ns" patch deployment "{{$d}}" --type='json' -p="$patch" || true
+              {{- end }}
+{{- end }}
